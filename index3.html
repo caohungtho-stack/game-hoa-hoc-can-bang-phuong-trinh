@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Game Cân Bằng Phương Trình - Thầy Cao Hùng Thọ</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --accent: #f59e0b;
+            --success: #16a34a;
+            --danger: #ef4444;
+            --card: rgba(255,255,255,0.97);
+            --text: #1f2937;
+            --muted: #64748b;
+            --border: #dbeafe;
+            --shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, #dbeafe 0%, transparent 32%),
+                radial-gradient(circle at top right, #fde68a 0%, transparent 28%),
+                linear-gradient(135deg, #eff6ff 0%, #f0fdf4 48%, #fff7ed 100%);
+        }
+
+        .app-shell {
+            width: 100vw;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 8px;
+        }
+
+        .fit-stage {
+            transform-origin: top center;
+            will-change: transform;
+        }
+
+        .container {
+            width: min(96vw, 980px);
+            background: var(--card);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.75);
+            position: relative;
+            overflow: hidden;
+            padding: 14px;
+        }
+
+        .container::before,
+        .container::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.13;
+        }
+
+        .container::before {
+            width: 140px;
+            height: 140px;
+            background: var(--primary);
+            top: -50px;
+            right: -40px;
+        }
+
+        .container::after {
+            width: 110px;
+            height: 110px;
+            background: var(--accent);
+            bottom: -35px;
+            left: -30px;
+        }
+
+        .container > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .badge-top {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: clamp(0.72rem, 1.4vw, 0.86rem);
+            font-weight: 800;
+            margin-bottom: 6px;
+            box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
+        }
+
+        header h1 {
+            margin: 3px 0 4px;
+            font-size: clamp(1.15rem, 2.5vw, 1.85rem);
+            color: var(--primary-dark);
+            line-height: 1.15;
+        }
+
+        header h2 {
+            margin: 0 auto;
+            font-size: clamp(0.78rem, 1.5vw, 1rem);
+            color: var(--muted);
+            font-weight: 700;
+            max-width: 760px;
+            line-height: 1.2;
+        }
+
+        .screen { display: none; animation: fadeIn 0.28s ease; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-box, .equation-panel, .result-card {
+            padding: 16px;
+            border-radius: 20px;
+        }
+
+        .hero-box {
+            margin-top: 10px;
+            background: linear-gradient(135deg, #eff6ff, #ffffff 55%, #fff7ed);
+            border: 2px solid #e0ecff;
+        }
+
+        .hero-box p {
+            margin: 0 0 10px 0;
+            font-size: clamp(0.9rem, 1.6vw, 1rem);
+            font-weight: 700;
+            color: #334155;
+            line-height: 1.35;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .input-group { text-align: left; }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            font-size: 0.92rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 11px 12px;
+            border: 2px solid #cfe2ff;
+            border-radius: 14px;
+            font-size: 0.96rem;
+            background: white;
+            transition: 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13);
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .status-item {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 2px solid #dbeafe;
+            border-radius: 16px;
+            padding: 10px 6px;
+            text-align: center;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+        }
+
+        .status-label {
+            display: block;
+            font-size: 0.74rem;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .status-value {
+            display: block;
+            font-size: clamp(0.88rem, 1.8vw, 1.1rem);
+            font-weight: 900;
+            color: var(--primary-dark);
+            line-height: 1.1;
+        }
+
+        #timer.warning .status-value {
+            color: var(--danger);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.45; } }
+
+        .equation-panel {
+            background: linear-gradient(135deg, #f8fbff, #ffffff);
+            border: 2px solid #dbeafe;
+            margin-bottom: 10px;
+        }
+
+        .equation-title {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--secondary);
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .equation-display {
+            font-size: clamp(1rem, 2.5vw, 1.6rem);
+            min-height: 66px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            line-height: 1.45;
+        }
+
+        .coeff-box {
+            width: clamp(42px, 6vw, 54px);
+            height: clamp(42px, 6vw, 54px);
+            border-radius: 14px;
+            border: 3px dashed #93c5fd;
+            background: linear-gradient(180deg, #ffffff, #f8fbff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+            font-weight: 900;
+            color: var(--accent);
+            cursor: pointer;
+            transition: 0.18s ease;
+            user-select: none;
+            box-shadow: 0 4px 10px rgba(37,99,235,0.06);
+        }
+
+        .coeff-box.filled {
+            border-style: solid;
+            border-color: var(--accent);
+            background: linear-gradient(180deg, #fff7ed, #ffffff);
+        }
+
+        .coeff-box.selected {
+            border-style: solid;
+            border-color: var(--primary);
+            background: linear-gradient(180deg, #e0f2fe, #ffffff);
+            color: var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+        }
+
+        sub { font-size: 0.62em; }
+
+        .keypad-wrap { margin: 8px 0 10px; }
+
+        .keypad-title {
+            text-align: center;
+            font-size: 0.92rem;
+            color: #475569;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .hint-box {
+            background: linear-gradient(135deg, #fff7ed, #fffbeb);
+            border: 2px solid #fde68a;
+            color: #92400e;
+            padding: 9px 10px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-align: left;
+            line-height: 1.25;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            padding: 10px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #eef6ff, #fdfcff);
+            border: 2px solid #dbeafe;
+        }
+
+        .num-card, .tool-card, .btn {
+            border: none;
+            cursor: pointer;
+            font-weight: 800;
+            transition: 0.18s ease;
+        }
+
+        .num-card {
+            min-height: 44px;
+            border-radius: 14px;
+            color: white;
+            font-size: 0.95rem;
+            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+        }
+
+        .tool-card {
+            min-height: 44px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            background: linear-gradient(180deg, #ffffff, #f1f5f9);
+            color: #334155;
+            border: 2px solid #dbeafe;
+        }
+
+        .tool-card.delete {
+            background: linear-gradient(180deg, #fef2f2, #fff);
+            color: #b91c1c;
+            border-color: #fecaca;
+        }
+
+        .tool-card.edit {
+            background: linear-gradient(180deg, #fff7ed, #fff);
+            color: #b45309;
+            border-color: #fed7aa;
+        }
+
+        .tool-card.retry {
+            background: linear-gradient(180deg, #ecfeff, #fff);
+            color: #155e75;
+            border-color: #a5f3fc;
+        }
+
+        #feedback {
+            min-height: 30px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-align: center;
+            padding: 6px 8px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 11px 12px;
+            border-radius: 14px;
+            font-size: 0.93rem;
+            color: white;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 16px;
+            font-size: 1rem;
+            color: white;
+            background: linear-gradient(180deg, var(--success), #15803d);
+            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.24);
+        }
+
+        .btn-check { background: linear-gradient(180deg, var(--accent), #ea580c); }
+        .btn-clear { background: linear-gradient(180deg, #94a3b8, #64748b); }
+        .btn-next { background: linear-gradient(180deg, var(--secondary), #6d28d9); }
+
+        .checks-note {
+            margin-top: 8px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .result-card {
+            margin-top: 8px;
+            background: linear-gradient(135deg, #ecfdf5, #ffffff 55%, #eff6ff);
+            border: 3px solid #86efac;
+            box-shadow: 0 12px 24px rgba(22, 163, 74, 0.1);
+        }
+
+        .result-card h2 {
+            margin: 0 0 12px 0;
+            color: var(--success);
+            font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+            text-align: center;
+        }
+
+        .result-info {
+            text-align: left;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 6px 0;
+            font-size: 0.95rem;
+        }
+
+        .highlight {
+            color: var(--success);
+            font-weight: 900;
+            font-size: 1.05rem;
+        }
+
+        .send-note {
+            margin-top: 12px;
+            background: linear-gradient(135deg, #fff7ed, #fffbeb);
+            border: 2px solid #fdba74;
+            color: #9a3412;
+            padding: 11px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .badge-board {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .mini-card {
+            background: linear-gradient(180deg, #fff, #f8fbff);
+            border: 2px solid #dbeafe;
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .mini-card-title {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .mini-card-value {
+            font-size: 1rem;
+            color: var(--primary-dark);
+            font-weight: 900;
+        }
+
+        .badge-result {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #fefce8, #fff);
+            border: 2px solid #fde68a;
+            color: #92400e;
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        footer {
+            margin-top: 8px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.76rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .mobile-number-input {
+            position: fixed;
+            left: -9999px;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
+
+        .fx-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .firework-burst {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+        }
+
+        .firework-dot {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            opacity: 0.95;
+            animation: firework-shot 900ms ease-out forwards;
+        }
+
+        @keyframes firework-shot {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        .sad-face {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            font-size: clamp(56px, 10vw, 110px);
+            z-index: 10000;
+            pointer-events: none;
+            animation: sad-pop 900ms ease forwards;
+            filter: drop-shadow(0 10px 18px rgba(0,0,0,0.18));
+        }
+
+        @keyframes sad-pop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.4);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.08);
+                opacity: 1;
+            }
+            70% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0.85);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .keypad { grid-template-columns: repeat(5, 1fr); }
+            .status-bar { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: 98vw;
+                padding: 10px;
+                border-radius: 18px;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .status-bar { grid-template-columns: repeat(2, 1fr); }
+            .keypad { grid-template-columns: repeat(4, 1fr); }
+            .btn-group { grid-template-columns: repeat(3, 1fr); }
+            .badge-board { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .app-shell { padding: 4px; }
+            .container { width: 99vw; padding: 8px; }
+            .badge-top { font-size: 0.68rem; padding: 5px 10px; }
+            .hero-box, .equation-panel, .result-card { padding: 10px; border-radius: 14px; }
+            .keypad { grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; }
+            .num-card, .tool-card { min-height: 38px; font-size: 0.84rem; }
+            .btn { padding: 9px 6px; font-size: 0.82rem; border-radius: 12px; }
+            .coeff-box { width: 38px; height: 38px; border-radius: 12px; }
+            .equation-display { gap: 6px; min-height: 56px; }
+            .result-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="fx-layer" class="fx-layer"></div>
+
+    <div class="app-shell">
+        <div class="fit-stage" id="fit-stage">
+            <div class="container" id="app-container">
+                <header>
+                    <div class="badge-top">🎮 HỌC MÀ CHƠI - CHƠI MÀ HỌC</div>
+                    <h1>Game Cân Bằng Phương Trình</h1>
+                    <h2>Thầy Cao Hùng Thọ – Trường THCS Tân Hóa</h2>
+                </header>
+
+                <div id="start-screen" class="screen active">
+                    <div class="hero-box">
+                        <p>🚀 Chào mừng các em đến với thử thách cân bằng phương trình hóa học. Mỗi lần chơi câu hỏi sẽ được xáo trộn để luyện tập hiệu quả hơn.</p>
+
+                        <div class="badge-board">
+                            <div class="mini-card">
+                                <div class="mini-card-title">Điểm cao nhất</div>
+                                <div class="mini-card-value" id="best-score-start">0</div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-card-title">Huy hiệu tốt nhất</div>
+                                <div class="mini-card-value" id="best-badge-start">Chưa có</div>
+                            </div>
+                        </div>
+
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label>Họ và tên học sinh</label>
+                                <input type="text" id="student-name" placeholder="Nhập đầy đủ họ tên..." />
+                            </div>
+
+                            <div class="input-group">
+                                <label>Lớp</label>
+                                <input type="text" id="student-class" placeholder="Ví dụ: 8A1" />
+                            </div>
+                        </div>
+
+                        <button class="btn btn-start" onclick="initGame()">BẮT ĐẦU LÀM BÀI</button>
+                    </div>
+                </div>
+
+                <div id="game-screen" class="screen">
+                    <div class="status-bar">
+                        <div class="status-item">
+                            <span class="status-label">Câu hiện tại</span>
+                            <span class="status-value" id="q-progress">1/20</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Điểm số</span>
+                            <span class="status-value" id="current-score">0</span>
+                        </div>
+                        <div class="status-item" id="timer">
+                            <span class="status-label">Thời gian</span>
+                            <span class="status-value">120s</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Tổng kiểm tra</span>
+                            <span class="status-value" id="total-checks">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Điểm cao nhất</span>
+                            <span class="status-value" id="best-score-game">0</span>
+                        </div>
+                    </div>
+
+                    <div class="equation-panel">
+                        <div class="equation-title">🧪 Chạm vào ô hệ số để nhập số</div>
+                        <div class="equation-display" id="equation-area"></div>
+                    </div>
+
+                    <div class="keypad-wrap">
+                        <div class="keypad-title">🔢 Bảng chọn hệ số</div>
+
+                        <div class="hint-box">
+                            Chọn ô cần nhập rồi bấm số từ 1 đến 12 ở bên dưới. Trên điện thoại có thể chạm vào ô để hiện bàn phím số. Trên máy tính có thể gõ trực tiếp từ bàn phím.
+                        </div>
+
+                        <div class="keypad" id="numbers-bank"></div>
+                    </div>
+
+                    <div id="feedback"></div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-check" onclick="checkAnswer()">Kiểm tra đáp án</button>
+                        <button class="btn btn-clear" onclick="clearCoefficients()">Xóa hệ số</button>
+                        <button class="btn btn-next" onclick="skipQuestion()">Qua câu</button>
+                    </div>
+
+                    <div class="checks-note">Lần kiểm tra câu này: <span id="q-checks">0</span></div>
+
+                    <input
+                        id="mobile-number-input"
+                        class="mobile-number-input"
+                        type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <div id="result-screen" class="screen">
+                    <div class="result-card">
+                        <h2>🏆 KẾT QUẢ BÀI LÀM</h2>
+
+                        <div class="result-info">
+                            <div class="result-row"><span>Họ và tên:</span> <span id="res-name" class="highlight">...</span></div>
+                            <div class="result-row"><span>Lớp:</span> <span id="res-class" class="highlight">...</span></div>
+                            <div class="result-row"><span>Tổng điểm:</span> <span id="res-score" class="highlight">0/20</span></div>
+                            <div class="result-row"><span>Tổng số lần kiểm tra:</span> <span id="res-checks">0</span></div>
+                            <div class="result-row"><span>Số câu sai:</span> <span id="res-wrong">0</span></div>
+                            <div class="result-row"><span>Thời gian hoàn thành:</span> <span id="res-time">...</span></div>
+                        </div>
+
+                        <div class="badge-board">
+                            <div class="mini-card">
+                                <div class="mini-card-title">Điểm cao nhất</div>
+                                <div class="mini-card-value" id="res-best-score">0</div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="mini-card-title">Huy hiệu tốt nhất</div>
+                                <div class="mini-card-value" id="res-best-badge">Chưa có</div>
+                            </div>
+                        </div>
+
+                        <div class="badge-result" id="badge-result">🎖️ Huy hiệu: Cố gắng</div>
+
+                        <div style="font-size: 0.88rem; color: #475569; margin-top: 10px;">
+                            <p>Mã bài làm: <span id="res-code">...</span></p>
+                            <p>Mã xác thực: <span id="res-verify">...</span></p>
+                        </div>
+
+                        <div class="send-note">
+                            📸 Em hãy chụp màn hình kết quả này và gửi qua Zalo cho thầy.
+                        </div>
+
+                        <div class="result-actions">
+                            <button class="tool-card retry" onclick="retryWrongQuestions()">Luyện lại câu sai</button>
+                            <button class="tool-card" onclick="restartFreshGame()">Chơi bộ mới</button>
+                        </div>
+
+                        <div style="margin-top: 12px;">
+                            <p style="font-weight: 800; margin-bottom: 4px;">Game cân bằng phương trình</p>
+                            <p style="margin-top: 0;">Thầy Cao Hùng Thọ – Trường THCS Tân Hóa</p>
+                        </div>
+                    </div>
+                </div>
+
+                <footer>
+                    Game cân bằng phương trình - Thầy Cao Hùng Thọ – Trường THCS Tân Hóa © 2026
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allEquations = [
+            { id: 1, left: ["H2", "O2"], right: ["H2O", "O2_dummy"] },
+            { id: 2, left: ["Mg", "HCl"], right: ["MgCl2", "H2"] },
+            { id: 3, left: ["Al", "O2"], right: ["Al2O3", "O2_dummy"] },
+            { id: 4, left: ["P", "O2"], right: ["P2O5", "O2_dummy"] },
+            { id: 5, left: ["CH4", "O2"], right: ["CO2", "H2O"] },
+            { id: 6, left: ["Fe", "CuSO4"], right: ["FeSO4", "Cu"] },
+            { id: 7, left: ["NaOH", "HCl"], right: ["NaCl", "H2O"] },
+            { id: 8, left: ["BaCl2", "H2SO4"], right: ["BaSO4", "HCl"] },
+            { id: 9, left: ["Fe2O3", "H2"], right: ["Fe", "H2O"] },
+            { id: 10, left: ["Al", "HCl"], right: ["AlCl3", "H2"] },
+            { id: 11, left: ["KClO3", "KClO3_dummy"], right: ["KCl", "O2"] },
+            { id: 12, left: ["Zn", "H2SO4"], right: ["ZnSO4", "H2"] },
+            { id: 13, left: ["C2H4", "O2"], right: ["CO2", "H2O"] },
+            { id: 14, left: ["Na", "O2"], right: ["Na2O", "O2_dummy"] },
+            { id: 15, left: ["AgNO3", "NaCl"], right: ["AgCl", "NaNO3"] },
+            { id: 16, left: ["Fe", "Cl2"], right: ["FeCl3", "Cl2_dummy"] },
+            { id: 17, left: ["Cu(OH)2", "HCl"], right: ["CuCl2", "H2O"] },
+            { id: 18, left: ["CaCO3", "HCl"], right: ["CaCl2", "H2O+CO2"] },
+            { id: 19, left: ["Al(OH)3", "H2SO4"], right: ["Al2(SO4)3", "H2O"] },
+            { id: 20, left: ["KMnO4", "KMnO4_dummy"], right: ["K2MnO4", "MnO2+O2"] }
+        ];
+
+        const STORAGE_KEY = "canbangphuongtrinh_best_v3";
+
+        let gameState = {
+            name: "",
+            class: "",
+            score: 0,
+            currentIdx: 0,
+            totalChecks: 0,
+            qChecks: 0,
+            timeLeft: 120,
+            timer: null,
+            activeBox: null,
+            questionPool: [],
+            wrongQuestions: [],
+            mode: "normal"
+        };
+
+        function getSavedBest() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return { bestScore: 0, bestBadge: "Chưa có" };
+                const parsed = JSON.parse(raw);
+                return {
+                    bestScore: parsed.bestScore || 0,
+                    bestBadge: parsed.bestBadge || "Chưa có"
+                };
+            } catch (e) {
+                return { bestScore: 0, bestBadge: "Chưa có" };
+            }
+        }
+
+        function badgeRank(badge) {
+            const map = {
+                "👑 Huy hiệu Hoàn hảo": 5,
+                "🌟 Huy hiệu Xuất sắc": 4,
+                "🏅 Huy hiệu Chăm chỉ": 3,
+                "🎖️ Huy hiệu Tiến bộ": 2,
+                "✨ Huy hiệu Cố gắng": 1,
+                "💪 Huy hiệu Khởi động": 0
+            };
+            return map[badge] ?? 0;
+        }
+
+        function saveBest(score, badge) {
+            const current = getSavedBest();
+            let bestScore = current.bestScore;
+            let bestBadge = current.bestBadge;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestBadge = badge;
+            } else if (score === bestScore && badgeRank(badge) > badgeRank(current.bestBadge)) {
+                bestBadge = badge;
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ bestScore, bestBadge }));
+        }
+
+        function updateBestUI() {
+            const best = getSavedBest();
+            document.getElementById("best-score-start").innerText = `${best.bestScore}/20`;
+            document.getElementById("best-badge-start").innerText = best.bestBadge;
+            const gameBest = document.getElementById("best-score-game");
+            if (gameBest) gameBest.innerText = `${best.bestScore}/20`;
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function adjustScaleToFit() {
+            const stage = document.getElementById('fit-stage');
+            const app = document.getElementById('app-container');
+            if (!stage || !app) return;
+
+            stage.style.transform = 'scale(1)';
+            stage.style.width = 'auto';
+            stage.style.height = 'auto';
+
+            const viewportW = window.innerWidth;
+            const viewportH = window.innerHeight;
+            const appRect = app.getBoundingClientRect();
+            const scaleX = (viewportW - 8) / appRect.width;
+            const scaleY = (viewportH - 8) / appRect.height;
+            const scale = Math.min(scaleX, scaleY, 1);
+
+            stage.style.transform = `scale(${scale})`;
+            stage.style.width = `${appRect.width * scale}px`;
+            stage.style.height = `${appRect.height * scale}px`;
+        }
+
+        async function requestFullscreenSafe() {
+            const el = document.documentElement;
+            try {
+                if (!document.fullscreenElement) {
+                    if (el.requestFullscreen) await el.requestFullscreen();
+                    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                }
+            } catch (e) {}
+        }
+
+        function prepareNewGamePool() {
+            gameState.questionPool = shuffleArray(allEquations);
+        }
+
+        async function initGame() {
+            gameState.name = document.getElementById('student-name').value.trim();
+            gameState.class = document.getElementById('student-class').value.trim();
+
+            if (!gameState.name || !gameState.class) {
+                alert("Vui lòng nhập đầy đủ Họ tên và Lớp để bắt đầu!");
+                return;
+            }
+
+            await requestFullscreenSafe();
+
+            gameState.score = 0;
+            gameState.currentIdx = 0;
+            gameState.totalChecks = 0;
+            gameState.qChecks = 0;
+            gameState.wrongQuestions = [];
+            gameState.mode = "normal";
+            prepareNewGamePool();
+
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            setupNumbers();
+            setupKeyboardInput();
+            updateBestUI();
+            loadQuestion();
+
+            setTimeout(adjustScaleToFit, 50);
+        }
+
+        function setupNumbers() {
+            const bank = document.getElementById('numbers-bank');
+            bank.innerHTML = '';
+
+            for (let i = 1; i <= 12; i++) {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'num-card';
+                card.innerText = i;
+                card.addEventListener('click', () => {
+                    if (!gameState.activeBox) {
+                        const firstBox = document.querySelector('.coeff-box');
+                        if (firstBox) selectBox(firstBox);
+                    }
+                    setActiveBoxValue(i);
+                });
+                bank.appendChild(card);
+            }
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'tool-card delete';
+            deleteBtn.innerText = 'Xóa ô';
+            deleteBtn.addEventListener('click', clearActiveBox);
+            bank.appendChild(deleteBtn);
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'tool-card edit';
+            editBtn.innerText = 'Sửa';
+            editBtn.addEventListener('click', () => {
+                if (gameState.activeBox) focusMobileInput();
+            });
+            bank.appendChild(editBtn);
+
+            const clearAllBtn = document.createElement('button');
+            clearAllBtn.type = 'button';
+            clearAllBtn.className = 'tool-card';
+            clearAllBtn.innerText = 'Xóa tất cả';
+            clearAllBtn.addEventListener('click', clearCoefficients);
+            bank.appendChild(clearAllBtn);
+        }
+
+        function setupKeyboardInput() {
+            const mobileInput = document.getElementById('mobile-number-input');
+
+            document.removeEventListener('keydown', handlePhysicalKeyboard);
+            document.addEventListener('keydown', handlePhysicalKeyboard);
+
+            mobileInput.removeEventListener('input', handleMobileTyping);
+            mobileInput.addEventListener('input', handleMobileTyping);
+
+            mobileInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    e.preventDefault();
+                    clearActiveBox();
+                }
+            });
+        }
+
+        function loadQuestion() {
+            if (gameState.currentIdx >= gameState.questionPool.length) {
+                showResults();
+                return;
+            }
+
+            gameState.qChecks = 0;
+            gameState.timeLeft = 120;
+            gameState.activeBox = null;
+            updateStatus();
+            startTimer();
+
+            const area = document.getElementById('equation-area');
+            area.innerHTML = '';
+            const eq = gameState.questionPool[gameState.currentIdx];
+
+            const createPart = (list) => {
+                let visibleIndex = 0;
+
+                list.forEach((formula) => {
+                    if (formula.includes('_dummy')) return;
+
+                    const box = document.createElement('div');
+                    box.className = 'coeff-box';
+                    box.dataset.value = '';
+                    box.innerText = '';
+                    box.addEventListener('click', () => selectBox(box));
+                    box.addEventListener('touchstart', () => selectBox(box), { passive: true });
+
+                    const chem = document.createElement('span');
+                    chem.innerHTML = formatChemical(formula);
+
+                    area.appendChild(box);
+                    area.appendChild(chem);
+
+                    visibleIndex++;
+                    const totalVisible = list.filter(item => !item.includes('_dummy')).length;
+                    if (visibleIndex < totalVisible) {
+                        const plus = document.createElement('span');
+                        plus.innerText = ' + ';
+                        area.appendChild(plus);
+                    }
+                });
+            };
+
+            createPart(eq.left);
+            const arrow = document.createElement('span');
+            arrow.innerHTML = '&rarr;';
+            area.appendChild(arrow);
+            createPart(eq.right);
+
+            const firstBox = document.querySelector('.coeff-box');
+            if (firstBox) selectBox(firstBox, false);
+
+            setTimeout(adjustScaleToFit, 30);
+        }
+
+        function selectBox(box, openKeyboard = true) {
+            document.querySelectorAll('.coeff-box').forEach(el => el.classList.remove('selected'));
+            box.classList.add('selected');
+            gameState.activeBox = box;
+            if (openKeyboard) focusMobileInput();
+        }
+
+        function focusMobileInput() {
+            const mobileInput = document.getElementById('mobile-number-input');
+            mobileInput.value = '';
+            mobileInput.focus();
+        }
+
+        function setCoeff(el, val) {
+            if (!el) return;
+
+            if (val === null || val === '' || Number(val) < 1) {
+                el.innerText = '';
+                el.dataset.value = '';
+                el.classList.remove('filled');
+                return;
+            }
+
+            const num = Number(val);
+            if (num < 1 || num > 12) return;
+
+            el.innerText = num;
+            el.dataset.value = String(num);
+            el.classList.add('filled');
+        }
+
+        function setActiveBoxValue(val) {
+            if (!gameState.activeBox) return;
+            setCoeff(gameState.activeBox, val);
+        }
+
+        function clearActiveBox() {
+            if (!gameState.activeBox) return;
+            setCoeff(gameState.activeBox, null);
+        }
+
+        function handlePhysicalKeyboard(e) {
+            if (!document.getElementById('game-screen').classList.contains('active')) return;
+            if (!gameState.activeBox) return;
+
+            const targetTag = document.activeElement ? document.activeElement.tagName : '';
+            if (targetTag === 'INPUT' && document.activeElement.id !== 'mobile-number-input') return;
+
+            if (e.key >= '1' && e.key <= '9') {
+                e.preventDefault();
+                appendDigitToActive(e.key);
+                return;
+            }
+
+            if (e.key === '0') {
+                e.preventDefault();
+                appendDigitToActive('0');
+                return;
+            }
+
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                e.preventDefault();
+                clearActiveBox();
+            }
+        }
+
+        function handleMobileTyping(e) {
+            if (!gameState.activeBox) return;
+
+            const raw = e.target.value.replace(/\D/g, '');
+            if (!raw) return;
+
+            let value = parseInt(raw, 10);
+            if (value > 12) value = parseInt(raw.slice(-1), 10);
+
+            if (value >= 1 && value <= 12) setActiveBoxValue(value);
+            e.target.value = '';
+        }
+
+        function appendDigitToActive(digit) {
+            const current = gameState.activeBox.dataset.value || '';
+            const combined = current + digit;
+
+            if (/^(10|11|12|[1-9])$/.test(combined)) {
+                setActiveBoxValue(Number(combined));
+                return;
+            }
+
+            if (/^[1-9]$/.test(digit)) {
+                setActiveBoxValue(Number(digit));
+            }
+        }
+
+        function formatChemical(f) {
+            return f.replace(/(\d+)/g, '<sub>$1</sub>').replace(/\+/g, ' + ');
+        }
+
+        function startTimer() {
+            if (gameState.timer) clearInterval(gameState.timer);
+
+            const timerEl = document.getElementById('timer');
+            const timerValueEl = timerEl.querySelector('.status-value');
+            timerEl.classList.remove('warning');
+            timerValueEl.innerText = `${gameState.timeLeft}s`;
+
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                timerValueEl.innerText = `${gameState.timeLeft}s`;
+
+                if (gameState.timeLeft <= 20) timerEl.classList.add('warning');
+                else timerEl.classList.remove('warning');
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    markCurrentQuestionWrong();
+                    showSadFace();
+                    alert("Hết thời gian câu này!");
+                    skipQuestion();
+                }
+            }, 1000);
+        }
+
+        function updateStatus() {
+            document.getElementById('q-progress').innerText = `${gameState.currentIdx + 1}/${gameState.questionPool.length}`;
+            document.getElementById('current-score').innerText = gameState.score;
+            document.getElementById('total-checks').innerText = gameState.totalChecks;
+            document.getElementById('q-checks').innerText = gameState.qChecks;
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('feedback').style.background = 'transparent';
+        }
+
+        function currentQuestionId() {
+            const q = gameState.questionPool[gameState.currentIdx];
+            return q ? q.id : null;
+        }
+
+        function markCurrentQuestionWrong() {
+            const q = gameState.questionPool[gameState.currentIdx];
+            if (!q) return;
+            if (!gameState.wrongQuestions.some(item => item.id === q.id)) {
+                gameState.wrongQuestions.push(q);
+            }
+        }
+
+        function removeCurrentQuestionFromWrong() {
+            const id = currentQuestionId();
+            gameState.wrongQuestions = gameState.wrongQuestions.filter(item => item.id !== id);
+        }
+
+        function randomBetween(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function showFireworks() {
+            const layer = document.getElementById("fx-layer");
+            if (!layer) return;
+
+            const bursts = 3;
+
+            for (let b = 0; b < bursts; b++) {
+                const burst = document.createElement("div");
+                burst.className = "firework-burst";
+
+                const x = randomBetween(window.innerWidth * 0.2, window.innerWidth * 0.8);
+                const y = randomBetween(window.innerHeight * 0.18, window.innerHeight * 0.48);
+
+                burst.style.left = `${x}px`;
+                burst.style.top = `${y}px`;
+
+                const colors = ["#ff4d4f", "#f59e0b", "#10b981", "#2563eb", "#7c3aed", "#ec4899", "#22c55e", "#f97316"];
+                const pieces = 18;
+
+                for (let i = 0; i < pieces; i++) {
+                    const dot = document.createElement("div");
+                    dot.className = "firework-dot";
+
+                    const angle = (Math.PI * 2 * i) / pieces;
+                    const distance = randomBetween(50, 110);
+                    const dx = Math.cos(angle) * distance;
+                    const dy = Math.sin(angle) * distance;
+
+                    dot.style.setProperty("--dx", `${dx}px`);
+                    dot.style.setProperty("--dy", `${dy}px`);
+                    dot.style.background = colors[i % colors.length];
+
+                    burst.appendChild(dot);
+                }
+
+                layer.appendChild(burst);
+
+                setTimeout(() => {
+                    burst.remove();
+                }, 950);
+            }
+        }
+
+        function showSadFace() {
+            const oldSad = document.querySelector(".sad-face");
+            if (oldSad) oldSad.remove();
+
+            const sad = document.createElement("div");
+            sad.className = "sad-face";
+            sad.textContent = "😢";
+            document.body.appendChild(sad);
+
+            setTimeout(() => {
+                sad.remove();
+            }, 900);
+        }
+
+        function checkAnswer() {
+            gameState.totalChecks++;
+            gameState.qChecks++;
+            updateStatus();
+
+            const boxes = document.querySelectorAll('.coeff-box');
+            const userCoeffs = Array.from(boxes).map(b => parseInt(b.dataset.value, 10) || 1);
+            const eq = gameState.questionPool[gameState.currentIdx];
+
+            let leftSide = {};
+            let rightSide = {};
+            let cIdx = 0;
+
+            eq.left.forEach(f => {
+                if (!f.includes('_dummy')) {
+                    let atoms = parseFormula(f);
+                    for (let a in atoms) {
+                        leftSide[a] = (leftSide[a] || 0) + atoms[a] * userCoeffs[cIdx];
+                    }
+                    cIdx++;
+                }
+            });
+
+            eq.right.forEach(f => {
+                if (!f.includes('_dummy')) {
+                    let atoms = parseFormula(f);
+                    for (let a in atoms) {
+                        rightSide[a] = (rightSide[a] || 0) + atoms[a] * userCoeffs[cIdx];
+                    }
+                    cIdx++;
+                }
+            });
+
+            const fb = document.getElementById('feedback');
+
+            if (isBalanced(leftSide, rightSide)) {
+                fb.style.color = '#166534';
+                fb.style.background = '#ecfdf5';
+                fb.innerText = "🎉 Chính xác! Em được cộng 1 điểm.";
+                gameState.score++;
+                removeCurrentQuestionFromWrong();
+                clearInterval(gameState.timer);
+                showFireworks();
+                setTimeout(skipQuestion, 900);
+            } else {
+                fb.style.color = '#b91c1c';
+                fb.style.background = '#fef2f2';
+                fb.innerText = "❌ Chưa cân bằng! Hãy thử lại.";
+                markCurrentQuestionWrong();
+                showSadFace();
+            }
+
+            setTimeout(adjustScaleToFit, 30);
+        }
+
+        function isBalanced(l, r) {
+            const allElements = new Set([...Object.keys(l), ...Object.keys(r)]);
+            for (let el of allElements) {
+                if (l[el] !== r[el]) return false;
+            }
+            return true;
+        }
+
+        function parseFormula(f) {
+            let stack = [{}];
+            let regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
+            let m;
+
+            while ((m = regex.exec(f))) {
+                if (m[1]) {
+                    let name = m[1];
+                    let num = parseInt(m[2], 10) || 1;
+                    stack[stack.length - 1][name] = (stack[stack.length - 1][name] || 0) + num;
+                } else if (m[3]) {
+                    stack.push({});
+                } else if (m[4]) {
+                    let top = stack.pop();
+                    let mult = parseInt(m[5], 10) || 1;
+                    for (let el in top) {
+                        stack[stack.length - 1][el] = (stack[stack.length - 1][el] || 0) + top[el] * mult;
+                    }
+                }
+            }
+
+            return stack[0];
+        }
+
+        function clearCoefficients() {
+            document.querySelectorAll('.coeff-box').forEach(b => setCoeff(b, null));
+            const firstBox = document.querySelector('.coeff-box');
+            if (firstBox) selectBox(firstBox, false);
+            setTimeout(adjustScaleToFit, 20);
+        }
+
+        function skipQuestion() {
+            gameState.currentIdx++;
+            loadQuestion();
+        }
+
+        function getBadge(score, totalChecks, wrongCount, totalQuestions) {
+            const ratio = score / totalQuestions;
+
+            if (score === totalQuestions) {
+                return "👑 Huy hiệu Hoàn hảo";
+            }
+
+            if (ratio >= 2 / 3) {
+                return "🌟 Huy hiệu Xuất sắc";
+            }
+
+            if (ratio >= 1 / 2) {
+                return "🏅 Huy hiệu Chăm chỉ";
+            }
+
+            if (ratio >= 1 / 3) {
+                return "🎖️ Huy hiệu Tiến bộ";
+            }
+
+            if (ratio >= 1 / 4) {
+                return "✨ Huy hiệu Cố gắng";
+            }
+
+            return "💪 Huy hiệu Khởi động";
+        }
+
+        function showResults() {
+            clearInterval(gameState.timer);
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('result-screen').classList.add('active');
+
+            const wrongCount = gameState.wrongQuestions.length;
+            const badge = getBadge(
+                gameState.score,
+                gameState.totalChecks,
+                wrongCount,
+                gameState.questionPool.length
+            );
+
+            saveBest(gameState.score, badge);
+            const best = getSavedBest();
+
+            document.getElementById('res-name').innerText = gameState.name;
+            document.getElementById('res-class').innerText = gameState.class;
+            document.getElementById('res-score').innerText = `${gameState.score}/${gameState.questionPool.length}`;
+            document.getElementById('res-checks').innerText = gameState.totalChecks;
+            document.getElementById('res-wrong').innerText = wrongCount;
+            document.getElementById('res-time').innerText = new Date().toLocaleString('vi-VN');
+            document.getElementById('badge-result').innerText = `🏅 Huy hiệu: ${badge}`;
+            document.getElementById('res-best-score').innerText = `${best.bestScore}/20`;
+            document.getElementById('res-best-badge').innerText = best.bestBadge;
+
+            const code = "THO-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const verify = btoa(gameState.name + gameState.score).substr(0, 8);
+
+            document.getElementById('res-code').innerText = code;
+            document.getElementById('res-verify').innerText = verify;
+
+            setTimeout(adjustScaleToFit, 30);
+        }
+
+        function retryWrongQuestions() {
+            if (!gameState.wrongQuestions.length) {
+                alert("Không có câu sai để luyện lại.");
+                return;
+            }
+
+            gameState.questionPool = shuffleArray(gameState.wrongQuestions);
+            gameState.score = 0;
+            gameState.currentIdx = 0;
+            gameState.totalChecks = 0;
+            gameState.qChecks = 0;
+            gameState.timeLeft = 120;
+            gameState.wrongQuestions = [];
+            gameState.mode = "retry";
+
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            updateBestUI();
+            loadQuestion();
+        }
+
+        function restartFreshGame() {
+            gameState.score = 0;
+            gameState.currentIdx = 0;
+            gameState.totalChecks = 0;
+            gameState.qChecks = 0;
+            gameState.timeLeft = 120;
+            gameState.wrongQuestions = [];
+            gameState.mode = "normal";
+            prepareNewGamePool();
+
+            document.getElementById('result-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            updateBestUI();
+            loadQuestion();
+        }
+
+        updateBestUI();
+
+        window.addEventListener('resize', adjustScaleToFit);
+        window.addEventListener('orientationchange', () => setTimeout(adjustScaleToFit, 150));
+        window.addEventListener('load', () => setTimeout(adjustScaleToFit, 60));
+        document.addEventListener('fullscreenchange', () => setTimeout(adjustScaleToFit, 120));
+        document.addEventListener('webkitfullscreenchange', () => setTimeout(adjustScaleToFit, 120));
+    </script>
+</body>
+</html>
